@@ -16,6 +16,15 @@ body {
   user-select: none;
 }
 
+/* ===== STARFIELD CANVAS ===== */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== START SCREEN ===== */
 #startScreen {
   position: fixed;
   inset: 0;
@@ -23,27 +32,34 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 70%);
   z-index: 100;
-  transition: opacity 0.5s;
+  transition: opacity 0.6s;
 }
 
 #startScreen.hidden { opacity: 0; pointer-events: none; }
 
 #startScreen h1 {
-  font-size: 5rem;
+  font-size: 5.5rem;
+  font-weight: 900;
   background: linear-gradient(135deg, #ff6ec7, #7873f5, #4fc3f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.12em;
+  animation: titlePulse 3s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(120, 115, 245, 0.3)); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(255, 110, 199, 0.5)); }
 }
 
 #startScreen .subtitle {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   color: #8888bb;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.05em;
 }
 
 .difficulty-select {
@@ -67,6 +83,7 @@ body {
   border-color: #7873f5;
   color: #fff;
   background: rgba(120, 115, 245, 0.2);
+  box-shadow: 0 0 15px rgba(120, 115, 245, 0.3);
 }
 
 #startBtn {
@@ -78,18 +95,34 @@ body {
   color: #fff;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.08em;
 }
 
 #startBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(120, 115, 245, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 0 40px rgba(120, 115, 245, 0.6);
 }
 
+/* ===== GAME AREA ===== */
 #gameArea {
   position: relative;
   width: 100%;
   height: 100vh;
-  background: radial-gradient(ellipse at 50% 100%, #1a1a3e 0%, #0a0a1a 60%);
+  z-index: 1;
+}
+
+/* Ambient glow behind the lane */
+#ambientGlow {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(120, 115, 245, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  transition: background 2s;
 }
 
 #laneContainer {
@@ -100,6 +133,7 @@ body {
   width: 700px;
   height: calc(100vh - 200px);
   overflow: hidden;
+  z-index: 2;
 }
 
 .hitLine {
@@ -109,7 +143,26 @@ body {
   right: 0;
   height: 3px;
   background: linear-gradient(90deg, transparent, #7873f5, #ff6ec7, #7873f5, transparent);
-  box-shadow: 0 0 15px rgba(120, 115, 245, 0.5);
+  box-shadow: 0 0 20px rgba(120, 115, 245, 0.6), 0 0 60px rgba(255, 110, 199, 0.2);
+}
+
+/* Pulsing ring on the hit line */
+.hitLine::before {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(120, 115, 245, 0.25) 0%, transparent 70%);
+  animation: hitPulse 1s ease-in-out infinite;
+}
+
+@keyframes hitPulse {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.3); }
 }
 
 .word-block {
@@ -117,57 +170,60 @@ body {
   left: 50%;
   transform: translateX(-50%);
   padding: 0.6rem 1.5rem;
-  background: rgba(30, 30, 60, 0.85);
-  border: 2px solid #444;
-  border-radius: 10px;
+  background: rgba(20, 20, 50, 0.9);
+  border: 2px solid rgba(100, 100, 160, 0.4);
+  border-radius: 12px;
   font-size: 1.5rem;
   letter-spacing: 0.15em;
   white-space: nowrap;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   text-align: center;
+  backdrop-filter: blur(4px);
 }
 
 .word-block.active {
   border-color: #7873f5;
-  box-shadow: 0 0 20px rgba(120, 115, 245, 0.4);
+  box-shadow: 0 0 25px rgba(120, 115, 245, 0.5), inset 0 0 15px rgba(120, 115, 245, 0.1);
 }
 
-.word-block .typed { color: #4fc3f7; }
-.word-block .untyped { color: #aaa; }
+.word-block .typed { color: #4fc3f7; text-shadow: 0 0 8px rgba(79, 195, 247, 0.5); }
+.word-block .untyped { color: #777; }
 .word-block .cursor-char {
   color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
+/* ===== INPUT ===== */
 #inputArea {
   position: absolute;
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  z-index: 10;
 }
 
 #typingInput {
-  width: 400px;
+  width: 420px;
   padding: 0.8rem 1.2rem;
   font-size: 1.3rem;
   letter-spacing: 0.12em;
-  background: rgba(20, 20, 50, 0.9);
+  background: rgba(15, 15, 40, 0.95);
   border: 2px solid #333;
-  border-radius: 10px;
+  border-radius: 12px;
   color: #fff;
   outline: none;
   text-align: center;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #typingInput:focus {
   border-color: #7873f5;
+  box-shadow: 0 0 20px rgba(120, 115, 245, 0.3);
 }
 
+/* ===== HUD ===== */
 #hud {
   position: absolute;
   top: 20px;
@@ -176,7 +232,6 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 0 30px;
-  font-size: 1rem;
   z-index: 10;
 }
 
@@ -186,13 +241,15 @@ body {
   align-items: center;
 }
 
-.hud-label { color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.hud-value { font-size: 1.8rem; font-weight: bold; }
+.hud-label { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; }
+.hud-value { font-size: 1.8rem; font-weight: bold; transition: transform 0.1s; }
 
 #combo .hud-value { color: #ff6ec7; }
 #score .hud-value { color: #4fc3f7; }
 #streak .hud-value { color: #ffeb3b; }
 #wpm .hud-value { color: #69f0ae; }
+
+.hud-value.pop { transform: scale(1.3); }
 
 #comboBar {
   position: absolute;
@@ -200,7 +257,8 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.03);
+  z-index: 10;
 }
 
 #comboFill {
@@ -208,19 +266,36 @@ body {
   width: 0%;
   background: linear-gradient(90deg, #7873f5, #ff6ec7, #ffeb3b);
   transition: width 0.3s;
+  box-shadow: 0 0 10px rgba(255, 110, 199, 0.4);
 }
 
+/* ===== PARTICLES ===== */
 .note-particle {
   position: fixed;
   pointer-events: none;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   z-index: 200;
-  animation: noteFloat 1s ease-out forwards;
+  animation: noteFloat 1.2s ease-out forwards;
 }
 
 @keyframes noteFloat {
-  0% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-80px) scale(0.3); }
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-100px) scale(0.2) rotate(180deg); }
+}
+
+.spark {
+  position: fixed;
+  pointer-events: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  z-index: 200;
+  animation: sparkFly 0.6s ease-out forwards;
+}
+
+@keyframes sparkFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
 }
 
 .hit-flash {
@@ -228,11 +303,11 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  animation: flashPulse 0.15s ease-out;
+  animation: flashPulse 0.2s ease-out;
 }
 
 @keyframes flashPulse {
-  0% { background: rgba(120, 115, 245, 0.15); }
+  0% { background: radial-gradient(ellipse at 50% 80%, rgba(120, 115, 245, 0.2) 0%, transparent 60%); }
   100% { background: transparent; }
 }
 
@@ -242,10 +317,11 @@ body {
 
 @keyframes shake {
   0%, 100% { transform: translateX(-50%); }
-  25% { transform: translateX(calc(-50% - 6px)); }
-  75% { transform: translateX(calc(-50% + 6px)); }
+  25% { transform: translateX(calc(-50% - 8px)); }
+  75% { transform: translateX(calc(-50% + 8px)); }
 }
 
+/* ===== GAME OVER ===== */
 #gameOver {
   position: fixed;
   inset: 0;
@@ -253,16 +329,16 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 10, 26, 0.95);
+  background: rgba(5, 5, 15, 0.97);
   z-index: 100;
 }
 
 #gameOver.show { display: flex; }
 
 #gameOver h2 {
-  font-size: 3rem;
+  font-size: 3.2rem;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ff6ec7, #7873f5);
+  background: linear-gradient(135deg, #ff6ec7, #7873f5, #4fc3f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -277,13 +353,14 @@ body {
 
 .stat-box {
   text-align: center;
-  padding: 1rem 2rem;
-  background: rgba(30, 30, 60, 0.6);
-  border-radius: 10px;
+  padding: 1.2rem 2rem;
+  background: rgba(30, 30, 60, 0.5);
+  border: 1px solid rgba(120, 115, 245, 0.2);
+  border-radius: 12px;
 }
 
 .stat-box .stat-val { font-size: 2.2rem; font-weight: bold; color: #4fc3f7; }
-.stat-box .stat-label { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-top: 0.3rem; }
+.stat-box .stat-label { font-size: 0.8rem; color: #777; text-transform: uppercase; margin-top: 0.3rem; }
 
 #restartBtn {
   padding: 0.8rem 2.5rem;
@@ -294,36 +371,40 @@ body {
   color: #fff;
   cursor: pointer;
   transition: transform 0.2s;
+  letter-spacing: 0.05em;
 }
 
-#restartBtn:hover { transform: scale(1.05); }
+#restartBtn:hover { transform: scale(1.08); box-shadow: 0 0 30px rgba(120,115,245,0.5); }
 
+/* ===== VISUALIZER ===== */
 .visualizer {
   position: absolute;
-  bottom: 90px;
+  bottom: 88px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 3px;
+  gap: 2px;
   align-items: flex-end;
-  height: 30px;
-  opacity: 0.5;
+  height: 40px;
+  opacity: 0.6;
+  z-index: 1;
 }
 
 .viz-bar {
-  width: 4px;
-  background: linear-gradient(to top, #7873f5, #ff6ec7);
-  border-radius: 2px;
-  transition: height 0.1s;
+  width: 5px;
+  border-radius: 3px;
+  transition: height 0.08s ease-out;
 }
 
+/* ===== RATING POPUP ===== */
 .rating-popup {
   position: absolute;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: bold;
   pointer-events: none;
-  animation: ratingPop 0.8s ease-out forwards;
+  animation: ratingPop 0.9s ease-out forwards;
   z-index: 60;
+  text-shadow: 0 0 15px currentColor;
 }
 
 .rating-popup.perfect { color: #ffeb3b; }
@@ -332,12 +413,56 @@ body {
 .rating-popup.miss { color: #ff5252; }
 
 @keyframes ratingPop {
-  0% { opacity: 1; transform: translateY(0) scale(1.3); }
-  100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+  0% { opacity: 1; transform: translateY(0) scale(1.4); }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.7); }
+}
+
+/* ===== COMBO BURST ===== */
+.combo-burst {
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  font-weight: 900;
+  pointer-events: none;
+  z-index: 150;
+  animation: comboBurst 1s ease-out forwards;
+  background: linear-gradient(135deg, #ffeb3b, #ff6ec7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes comboBurst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+}
+
+/* ===== VOLUME CONTROL ===== */
+#volumeControl {
+  position: absolute;
+  bottom: 35px;
+  right: 25px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+#volumeControl:hover { opacity: 1; }
+#volumeControl label { font-size: 0.75rem; color: #888; }
+#volumeSlider {
+  width: 70px;
+  accent-color: #7873f5;
 }
 </style>
 </head>
 <body>
+
+<canvas id="starfield"></canvas>
 
 <div id="startScreen">
   <h1>TYPEBEAT</h1>
@@ -358,12 +483,17 @@ body {
     <div class="hud-item" id="score"><span class="hud-label">Score</span><span class="hud-value">0</span></div>
     <div class="hud-item" id="streak"><span class="hud-label">Best Streak</span><span class="hud-value">0</span></div>
   </div>
+  <div id="ambientGlow"></div>
   <div id="laneContainer">
     <div class="hitLine"></div>
   </div>
   <div class="visualizer" id="visualizer"></div>
   <div id="inputArea">
     <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type here...">
+  </div>
+  <div id="volumeControl">
+    <label>VOL</label>
+    <input type="range" id="volumeSlider" min="0" max="100" value="60">
   </div>
 </div>
 
@@ -379,121 +509,732 @@ body {
 </div>
 
 <script>
-// ============================================================
-// AUDIO ENGINE - Web Audio API synth
-// ============================================================
-const AudioEngine = (() => {
-  let ctx;
-  const scales = {
-    pentatonic: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
-    major: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
-    minor: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16, 523.25],
+// ================================================================
+// STARFIELD - animated background stars
+// ================================================================
+var starCanvas = document.getElementById('starfield');
+var starCtx = starCanvas.getContext('2d');
+var stars = [];
+var NUM_STARS = 180;
+
+function resizeStarfield() {
+  starCanvas.width = window.innerWidth;
+  starCanvas.height = window.innerHeight;
+}
+resizeStarfield();
+window.addEventListener('resize', resizeStarfield);
+
+for (var i = 0; i < NUM_STARS; i++) {
+  stars.push({
+    x: Math.random() * starCanvas.width,
+    y: Math.random() * starCanvas.height,
+    r: Math.random() * 1.8 + 0.3,
+    speed: Math.random() * 0.3 + 0.05,
+    flicker: Math.random() * Math.PI * 2,
+    hue: Math.random() * 60 + 220 // blue-purple range
+  });
+}
+
+var bgHue = 240;
+var bgHueTarget = 240;
+
+function drawStars() {
+  starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+
+  // Subtle gradient background that shifts with combo
+  var grad = starCtx.createRadialGradient(
+    starCanvas.width / 2, starCanvas.height, 0,
+    starCanvas.width / 2, starCanvas.height, starCanvas.height
+  );
+  grad.addColorStop(0, 'hsla(' + Math.round(bgHue) + ', 40%, 10%, 1)');
+  grad.addColorStop(1, 'hsla(' + Math.round(bgHue + 20) + ', 30%, 4%, 1)');
+  starCtx.fillStyle = grad;
+  starCtx.fillRect(0, 0, starCanvas.width, starCanvas.height);
+
+  for (var i = 0; i < stars.length; i++) {
+    var s = stars[i];
+    s.y += s.speed;
+    s.flicker += 0.02;
+    if (s.y > starCanvas.height + 5) {
+      s.y = -5;
+      s.x = Math.random() * starCanvas.width;
+    }
+    var alpha = 0.4 + 0.4 * Math.sin(s.flicker);
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    starCtx.fillStyle = 'hsla(' + Math.round(s.hue) + ', 70%, 75%, ' + alpha.toFixed(2) + ')';
+    starCtx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+
+// ================================================================
+// MUSIC ENGINE - Full composed soundtrack + SFX
+// ================================================================
+var MusicEngine = (function() {
+  var ctx;
+  var masterGain;
+  var musicGain;   // background music volume
+  var sfxGain;     // typing sound effects volume
+  var volume = 0.6;
+
+  // Scheduling
+  var bpm = 120;
+  var beatDuration;    // seconds per beat
+  var nextBeatTime;    // when the next beat is scheduled
+  var currentBeat;     // which beat we're on (0-indexed within the loop)
+  var loopLength = 16; // 16-beat loop (4 bars of 4/4)
+  var schedulerTimer;
+  var scheduleAhead = 0.12; // schedule 120ms ahead
+  var isPlaying = false;
+
+  // Note frequencies (C3 to C5 range)
+  var NOTE = {
+    C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+    C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00
   };
-  let currentScale = scales.pentatonic;
-  let noteIndex = 0;
-  let beatInterval;
+
+  // ---- SONG DEFINITIONS per difficulty ----
+  // Each song has: bassLine, chords, melody, hihat pattern, kick pattern, snare pattern
+
+  var songs = {
+    // === CHILL (90 BPM) - dreamy lo-fi feel, Am-F-C-G progression ===
+    easy: {
+      bpm: 90,
+      // Bass plays root notes, one per bar (each bar = 4 beats)
+      bass: [
+        { beat: 0,  note: NOTE.A3, dur: 3.5 },
+        { beat: 4,  note: NOTE.F3, dur: 3.5 },
+        { beat: 8,  note: NOTE.C4, dur: 3.5 },
+        { beat: 12, note: NOTE.G3, dur: 3.5 }
+      ],
+      // Chords: arpeggiated pads
+      chords: [
+        // Am (A-C-E)
+        { beat: 0,   note: NOTE.A3, dur: 1.5 },
+        { beat: 0.5, note: NOTE.C4, dur: 1.5 },
+        { beat: 1,   note: NOTE.E4, dur: 1.5 },
+        { beat: 2,   note: NOTE.A3, dur: 1.5 },
+        { beat: 2.5, note: NOTE.C4, dur: 1.5 },
+        { beat: 3,   note: NOTE.E4, dur: 1.5 },
+        // F (F-A-C)
+        { beat: 4,   note: NOTE.F3, dur: 1.5 },
+        { beat: 4.5, note: NOTE.A3, dur: 1.5 },
+        { beat: 5,   note: NOTE.C4, dur: 1.5 },
+        { beat: 6,   note: NOTE.F3, dur: 1.5 },
+        { beat: 6.5, note: NOTE.A3, dur: 1.5 },
+        { beat: 7,   note: NOTE.C4, dur: 1.5 },
+        // C (C-E-G)
+        { beat: 8,   note: NOTE.C4, dur: 1.5 },
+        { beat: 8.5, note: NOTE.E4, dur: 1.5 },
+        { beat: 9,   note: NOTE.G4, dur: 1.5 },
+        { beat: 10,  note: NOTE.C4, dur: 1.5 },
+        { beat: 10.5,note: NOTE.E4, dur: 1.5 },
+        { beat: 11,  note: NOTE.G4, dur: 1.5 },
+        // G (G-B-D)
+        { beat: 12,  note: NOTE.G3, dur: 1.5 },
+        { beat: 12.5,note: NOTE.B3, dur: 1.5 },
+        { beat: 13,  note: NOTE.D4, dur: 1.5 },
+        { beat: 14,  note: NOTE.G3, dur: 1.5 },
+        { beat: 14.5,note: NOTE.B3, dur: 1.5 },
+        { beat: 15,  note: NOTE.D4, dur: 1.5 }
+      ],
+      // Catchy melody over the top
+      melody: [
+        { beat: 0,   note: NOTE.E5, dur: 0.8 },
+        { beat: 1,   note: NOTE.D5, dur: 0.4 },
+        { beat: 1.5, note: NOTE.C5, dur: 0.8 },
+        { beat: 2.5, note: NOTE.D5, dur: 0.4 },
+        { beat: 3,   note: NOTE.E5, dur: 0.9 },
+
+        { beat: 4,   note: NOTE.C5, dur: 0.8 },
+        { beat: 5,   note: NOTE.A4, dur: 0.4 },
+        { beat: 5.5, note: NOTE.C5, dur: 0.8 },
+        { beat: 7,   note: NOTE.A4, dur: 0.9 },
+
+        { beat: 8,   note: NOTE.G4, dur: 0.8 },
+        { beat: 9,   note: NOTE.A4, dur: 0.4 },
+        { beat: 9.5, note: NOTE.C5, dur: 0.6 },
+        { beat: 10.5,note: NOTE.E5, dur: 0.4 },
+        { beat: 11,  note: NOTE.D5, dur: 0.9 },
+
+        { beat: 12,  note: NOTE.D5, dur: 0.6 },
+        { beat: 13,  note: NOTE.C5, dur: 0.4 },
+        { beat: 13.5,note: NOTE.B4, dur: 0.5 },
+        { beat: 14.5,note: NOTE.A4, dur: 0.4 },
+        { beat: 15,  note: NOTE.G4, dur: 0.9 }
+      ],
+      // Drums
+      kick:  [0, 2, 4, 6, 8, 10, 12, 14],
+      snare: [2, 6, 10, 14],
+      hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+
+    // === GROOVE (120 BPM) - upbeat synth-pop, C-G-Am-F ===
+    medium: {
+      bpm: 120,
+      bass: [
+        { beat: 0,  note: NOTE.C3, dur: 1.0 },
+        { beat: 1.5,note: NOTE.C3, dur: 0.5 },
+        { beat: 2.5,note: NOTE.C4, dur: 0.5 },
+        { beat: 4,  note: NOTE.G3, dur: 1.0 },
+        { beat: 5.5,note: NOTE.G3, dur: 0.5 },
+        { beat: 6.5,note: NOTE.G3, dur: 0.5 },
+        { beat: 8,  note: NOTE.A3, dur: 1.0 },
+        { beat: 9.5,note: NOTE.A3, dur: 0.5 },
+        { beat: 10.5,note: NOTE.A3, dur: 0.5 },
+        { beat: 12, note: NOTE.F3, dur: 1.0 },
+        { beat: 13.5,note: NOTE.F3, dur: 0.5 },
+        { beat: 14.5,note: NOTE.G3, dur: 0.5 }
+      ],
+      chords: [
+        // C major pad
+        { beat: 0, note: NOTE.C4, dur: 3.5 },
+        { beat: 0, note: NOTE.E4, dur: 3.5 },
+        { beat: 0, note: NOTE.G4, dur: 3.5 },
+        // G major pad
+        { beat: 4, note: NOTE.G3, dur: 3.5 },
+        { beat: 4, note: NOTE.B3, dur: 3.5 },
+        { beat: 4, note: NOTE.D4, dur: 3.5 },
+        // Am pad
+        { beat: 8, note: NOTE.A3, dur: 3.5 },
+        { beat: 8, note: NOTE.C4, dur: 3.5 },
+        { beat: 8, note: NOTE.E4, dur: 3.5 },
+        // F major pad
+        { beat: 12, note: NOTE.F3, dur: 3.5 },
+        { beat: 12, note: NOTE.A3, dur: 3.5 },
+        { beat: 12, note: NOTE.C4, dur: 3.5 }
+      ],
+      melody: [
+        { beat: 0,   note: NOTE.E5, dur: 0.5 },
+        { beat: 0.5, note: NOTE.G5, dur: 0.5 },
+        { beat: 1,   note: NOTE.E5, dur: 0.5 },
+        { beat: 2,   note: NOTE.C5, dur: 0.7 },
+        { beat: 3,   note: NOTE.D5, dur: 0.7 },
+
+        { beat: 4,   note: NOTE.D5, dur: 0.5 },
+        { beat: 4.5, note: NOTE.E5, dur: 0.5 },
+        { beat: 5,   note: NOTE.D5, dur: 0.5 },
+        { beat: 6,   note: NOTE.B4, dur: 0.7 },
+        { beat: 7,   note: NOTE.C5, dur: 0.7 },
+
+        { beat: 8,   note: NOTE.C5, dur: 0.5 },
+        { beat: 8.5, note: NOTE.E5, dur: 0.5 },
+        { beat: 9,   note: NOTE.A5, dur: 0.7 },
+        { beat: 10,  note: NOTE.G5, dur: 0.5 },
+        { beat: 10.5,note: NOTE.E5, dur: 0.7 },
+        { beat: 11.5,note: NOTE.C5, dur: 0.4 },
+
+        { beat: 12,  note: NOTE.A4, dur: 0.5 },
+        { beat: 12.5,note: NOTE.C5, dur: 0.5 },
+        { beat: 13,  note: NOTE.F5, dur: 0.7 },
+        { beat: 14,  note: NOTE.E5, dur: 0.5 },
+        { beat: 14.5,note: NOTE.D5, dur: 0.5 },
+        { beat: 15,  note: NOTE.C5, dur: 0.9 }
+      ],
+      kick:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      snare: [1, 3, 5, 7, 9, 11, 13, 15],
+      hihat: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5,
+              8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.5, 13, 13.5, 14, 14.5, 15, 15.5]
+    },
+
+    // === FRENZY (150 BPM) - intense, Dm-Bb-F-C ===
+    hard: {
+      bpm: 150,
+      bass: [
+        { beat: 0,  note: NOTE.D3, dur: 0.6 },
+        { beat: 1,  note: NOTE.D3, dur: 0.3 },
+        { beat: 1.5,note: NOTE.D3, dur: 0.3 },
+        { beat: 2,  note: NOTE.D3, dur: 0.6 },
+        { beat: 3,  note: NOTE.F3, dur: 0.4 },
+        { beat: 3.5,note: NOTE.D3, dur: 0.3 },
+
+        { beat: 4,  note: NOTE.A3, dur: 0.6 },
+        { beat: 5,  note: NOTE.A3, dur: 0.3 },
+        { beat: 5.5,note: NOTE.A3, dur: 0.3 },
+        { beat: 6,  note: NOTE.A3, dur: 0.6 },
+        { beat: 7,  note: NOTE.G3, dur: 0.4 },
+        { beat: 7.5,note: NOTE.A3, dur: 0.3 },
+
+        { beat: 8,  note: NOTE.F3, dur: 0.6 },
+        { beat: 9,  note: NOTE.F3, dur: 0.3 },
+        { beat: 9.5,note: NOTE.F3, dur: 0.3 },
+        { beat: 10, note: NOTE.F3, dur: 0.6 },
+        { beat: 11, note: NOTE.E3, dur: 0.4 },
+        { beat: 11.5,note: NOTE.F3, dur: 0.3 },
+
+        { beat: 12, note: NOTE.C3, dur: 0.6 },
+        { beat: 13, note: NOTE.C3, dur: 0.3 },
+        { beat: 13.5,note: NOTE.C3, dur: 0.3 },
+        { beat: 14, note: NOTE.C3, dur: 0.6 },
+        { beat: 15, note: NOTE.D3, dur: 0.4 },
+        { beat: 15.5,note: NOTE.C3, dur: 0.3 }
+      ],
+      chords: [
+        // Dm
+        { beat: 0,  note: NOTE.D4, dur: 1.8 },
+        { beat: 0,  note: NOTE.F4, dur: 1.8 },
+        { beat: 0,  note: NOTE.A4, dur: 1.8 },
+        { beat: 2,  note: NOTE.D4, dur: 1.8 },
+        { beat: 2,  note: NOTE.F4, dur: 1.8 },
+        { beat: 2,  note: NOTE.A4, dur: 1.8 },
+        // Bb
+        { beat: 4,  note: NOTE.D4, dur: 1.8 },
+        { beat: 4,  note: NOTE.F4, dur: 1.8 },
+        { beat: 4,  note: NOTE.A4, dur: 1.8 },
+        { beat: 6,  note: NOTE.D4, dur: 1.8 },
+        { beat: 6,  note: NOTE.F4, dur: 1.8 },
+        { beat: 6,  note: NOTE.A4, dur: 1.8 },
+        // F
+        { beat: 8,  note: NOTE.C4, dur: 1.8 },
+        { beat: 8,  note: NOTE.F4, dur: 1.8 },
+        { beat: 8,  note: NOTE.A4, dur: 1.8 },
+        { beat: 10, note: NOTE.C4, dur: 1.8 },
+        { beat: 10, note: NOTE.F4, dur: 1.8 },
+        { beat: 10, note: NOTE.A4, dur: 1.8 },
+        // C
+        { beat: 12, note: NOTE.C4, dur: 1.8 },
+        { beat: 12, note: NOTE.E4, dur: 1.8 },
+        { beat: 12, note: NOTE.G4, dur: 1.8 },
+        { beat: 14, note: NOTE.C4, dur: 1.8 },
+        { beat: 14, note: NOTE.E4, dur: 1.8 },
+        { beat: 14, note: NOTE.G4, dur: 1.8 }
+      ],
+      melody: [
+        { beat: 0,   note: NOTE.D5, dur: 0.3 },
+        { beat: 0.5, note: NOTE.F5, dur: 0.3 },
+        { beat: 1,   note: NOTE.A5, dur: 0.3 },
+        { beat: 1.5, note: NOTE.F5, dur: 0.3 },
+        { beat: 2,   note: NOTE.D5, dur: 0.5 },
+        { beat: 3,   note: NOTE.E5, dur: 0.3 },
+        { beat: 3.5, note: NOTE.F5, dur: 0.4 },
+
+        { beat: 4,   note: NOTE.F5, dur: 0.3 },
+        { beat: 4.5, note: NOTE.E5, dur: 0.3 },
+        { beat: 5,   note: NOTE.D5, dur: 0.3 },
+        { beat: 5.5, note: NOTE.C5, dur: 0.3 },
+        { beat: 6,   note: NOTE.D5, dur: 0.5 },
+        { beat: 7,   note: NOTE.A4, dur: 0.3 },
+        { beat: 7.5, note: NOTE.C5, dur: 0.4 },
+
+        { beat: 8,   note: NOTE.C5, dur: 0.3 },
+        { beat: 8.5, note: NOTE.D5, dur: 0.3 },
+        { beat: 9,   note: NOTE.F5, dur: 0.5 },
+        { beat: 10,  note: NOTE.E5, dur: 0.3 },
+        { beat: 10.5,note: NOTE.D5, dur: 0.3 },
+        { beat: 11,  note: NOTE.C5, dur: 0.5 },
+
+        { beat: 12,  note: NOTE.C5, dur: 0.3 },
+        { beat: 12.5,note: NOTE.E5, dur: 0.3 },
+        { beat: 13,  note: NOTE.G5, dur: 0.5 },
+        { beat: 14,  note: NOTE.E5, dur: 0.3 },
+        { beat: 14.5,note: NOTE.D5, dur: 0.3 },
+        { beat: 15,  note: NOTE.C5, dur: 0.8 }
+      ],
+      kick:  [0, 0.5, 2, 2.5, 4, 4.5, 6, 6.5, 8, 8.5, 10, 10.5, 12, 12.5, 14, 14.5],
+      snare: [1, 3, 5, 7, 9, 11, 13, 15],
+      hihat: (function() {
+        var h = [];
+        for (var i = 0; i < 16; i += 0.5) h.push(i);
+        return h;
+      })()
+    }
+  };
+
+  var currentSong = null;
+  // Typing SFX scale
+  var sfxScales = {
+    easy:   [NOTE.C4, NOTE.D4, NOTE.E4, NOTE.G4, NOTE.A4, NOTE.C5, NOTE.D5, NOTE.E5],
+    medium: [NOTE.C4, NOTE.D4, NOTE.E4, NOTE.F4, NOTE.G4, NOTE.A4, NOTE.B4, NOTE.C5],
+    hard:   [NOTE.D4, NOTE.E4, NOTE.F4, NOTE.A4, NOTE.C5, NOTE.D5, NOTE.F5, NOTE.A5]
+  };
+  var sfxScale = sfxScales.easy;
+  var sfxNoteIdx = 0;
 
   function init() {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = volume;
+    masterGain.connect(ctx.destination);
+
+    musicGain = ctx.createGain();
+    musicGain.gain.value = 0.55;
+    musicGain.connect(masterGain);
+
+    sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.7;
+    sfxGain.connect(masterGain);
   }
 
-  function playNote(freqOverride, duration, volume, type) {
-    if (!ctx) return;
-    duration = duration || 0.18;
-    volume = volume || 0.25;
-    type = type || 'triangle';
-    const freq = freqOverride || currentScale[noteIndex % currentScale.length];
-    noteIndex++;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(2000, ctx.currentTime);
-
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
+  function setVolume(v) {
+    volume = v;
+    if (masterGain) masterGain.gain.value = v;
   }
 
-  function playChord(baseFreq, duration) {
-    if (!ctx) return;
-    duration = duration || 0.3;
-    [1, 1.25, 1.5].forEach(function(ratio, i) {
-      setTimeout(function() { playNote(baseFreq * ratio, duration, 0.15, 'sine'); }, i * 30);
-    });
+  // ---- Synth voices ----
+
+  function playBass(freq, time, dur) {
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    var filt = ctx.createBiquadFilter();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, time);
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(300, time);
+    filt.Q.value = 5;
+    g.gain.setValueAtTime(0.28, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(filt);
+    filt.connect(g);
+    g.connect(musicGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.05);
   }
 
-  function playMiss() {
-    if (!ctx) return;
-    playNote(150, 0.2, 0.15, 'sawtooth');
-  }
-
-  function playComboUp() {
-    if (!ctx) return;
-    const base = currentScale[noteIndex % currentScale.length];
-    [0, 50, 100].forEach(function(delay, i) {
-      setTimeout(function() { playNote(base * (1 + i * 0.25), 0.15, 0.12, 'sine'); }, delay);
-    });
-  }
-
-  function playWordComplete() {
-    if (!ctx) return;
-    const base = currentScale[Math.floor(Math.random() * currentScale.length)];
-    playChord(base, 0.4);
-  }
-
-  function startBeat(bpm) {
-    const interval = (60 / bpm) * 1000;
-    let tick = 0;
-    clearInterval(beatInterval);
-    beatInterval = setInterval(function() {
-      if (!ctx) return;
-      const freq = tick % 4 === 0 ? 80 : 60;
-      const vol = tick % 4 === 0 ? 0.08 : 0.04;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+  function playPad(freq, time, dur) {
+    // Lush pad: two detuned oscillators
+    for (var d = -4; d <= 4; d += 8) {
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      var filt = ctx.createBiquadFilter();
       osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(vol, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.08);
-      tick++;
-
-      vizBars.forEach(function(bar) {
-        const h = (tick % 4 === 0 ? 20 : 8) + Math.random() * 10;
-        bar.style.height = h + 'px';
-      });
-    }, interval);
+      osc.frequency.setValueAtTime(freq, time);
+      osc.detune.setValueAtTime(d, time);
+      filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(1200, time);
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime(0.06, time + 0.1);
+      g.gain.setValueAtTime(0.06, time + dur * 0.7);
+      g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      osc.connect(filt);
+      filt.connect(g);
+      g.connect(musicGain);
+      osc.start(time);
+      osc.stop(time + dur + 0.1);
+    }
   }
 
-  function stopBeat() {
-    clearInterval(beatInterval);
+  function playMelody(freq, time, dur) {
+    var osc = ctx.createOscillator();
+    var osc2 = ctx.createOscillator();
+    var g = ctx.createGain();
+    var filt = ctx.createBiquadFilter();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, time);
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(freq, time);
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(1800, time);
+    filt.frequency.exponentialRampToValueAtTime(600, time + dur);
+    g.gain.setValueAtTime(0.10, time);
+    g.gain.setValueAtTime(0.10, time + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(filt);
+    osc2.connect(filt);
+    filt.connect(g);
+    g.connect(musicGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.05);
+    osc2.start(time);
+    osc2.stop(time + dur + 0.05);
   }
 
-  function setScale(name) {
-    if (scales[name]) currentScale = scales[name];
+  function playKick(time) {
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, time);
+    osc.frequency.exponentialRampToValueAtTime(30, time + 0.12);
+    g.gain.setValueAtTime(0.35, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+    osc.connect(g);
+    g.connect(musicGain);
+    osc.start(time);
+    osc.stop(time + 0.2);
   }
 
-  return { init: init, playNote: playNote, playMiss: playMiss, playComboUp: playComboUp, playWordComplete: playWordComplete, startBeat: startBeat, stopBeat: stopBeat, setScale: setScale };
+  function playSnare(time) {
+    // Noise burst
+    var bufSize = ctx.sampleRate * 0.08;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var ng = ctx.createGain();
+    var filt = ctx.createBiquadFilter();
+    filt.type = 'highpass';
+    filt.frequency.value = 3000;
+    ng.gain.setValueAtTime(0.18, time);
+    ng.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+    noise.connect(filt);
+    filt.connect(ng);
+    ng.connect(musicGain);
+    noise.start(time);
+    noise.stop(time + 0.1);
+
+    // Body
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, time);
+    osc.frequency.exponentialRampToValueAtTime(100, time + 0.05);
+    g.gain.setValueAtTime(0.15, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+    osc.connect(g);
+    g.connect(musicGain);
+    osc.start(time);
+    osc.stop(time + 0.1);
+  }
+
+  function playHihat(time) {
+    var bufSize = ctx.sampleRate * 0.03;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var ng = ctx.createGain();
+    var filt = ctx.createBiquadFilter();
+    filt.type = 'highpass';
+    filt.frequency.value = 7000;
+    ng.gain.setValueAtTime(0.07, time);
+    ng.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
+    noise.connect(filt);
+    filt.connect(ng);
+    ng.connect(musicGain);
+    noise.start(time);
+    noise.stop(time + 0.05);
+  }
+
+  // ---- Scheduler: runs ahead of real-time, schedules notes ----
+  function scheduler() {
+    if (!isPlaying || !ctx) return;
+
+    while (nextBeatTime < ctx.currentTime + scheduleAhead) {
+      var beatInLoop = currentBeat % loopLength;
+      var time = nextBeatTime;
+
+      // Schedule all song elements for this beat
+      var song = currentSong;
+      if (song) {
+        // Bass
+        for (var i = 0; i < song.bass.length; i++) {
+          if (Math.abs(song.bass[i].beat - beatInLoop) < 0.01) {
+            playBass(song.bass[i].note, time, song.bass[i].dur * beatDuration);
+          }
+        }
+        // Chords
+        for (var i = 0; i < song.chords.length; i++) {
+          if (Math.abs(song.chords[i].beat - beatInLoop) < 0.01) {
+            playPad(song.chords[i].note, time, song.chords[i].dur * beatDuration);
+          }
+        }
+        // Melody
+        for (var i = 0; i < song.melody.length; i++) {
+          if (Math.abs(song.melody[i].beat - beatInLoop) < 0.01) {
+            playMelody(song.melody[i].note, time, song.melody[i].dur * beatDuration);
+          }
+        }
+        // Kick
+        for (var i = 0; i < song.kick.length; i++) {
+          if (Math.abs(song.kick[i] - beatInLoop) < 0.01) {
+            playKick(time);
+          }
+        }
+        // Snare
+        for (var i = 0; i < song.snare.length; i++) {
+          if (Math.abs(song.snare[i] - beatInLoop) < 0.01) {
+            playSnare(time);
+          }
+        }
+        // Hihat
+        for (var i = 0; i < song.hihat.length; i++) {
+          if (Math.abs(song.hihat[i] - beatInLoop) < 0.01) {
+            playHihat(time);
+          }
+        }
+      }
+
+      // Pulse visualizer on beats
+      if (Math.abs(beatInLoop - Math.round(beatInLoop)) < 0.01) {
+        var isDownbeat = beatInLoop % 4 === 0;
+        setTimeout(function(db) {
+          return function() { pulseVisualizer(db); };
+        }(isDownbeat), (time - ctx.currentTime) * 1000);
+      }
+
+      // Advance by half-beat to support half-beat resolution
+      currentBeat += 0.5;
+      nextBeatTime += beatDuration * 0.5;
+    }
+  }
+
+  function startMusic(diff) {
+    if (!ctx) init();
+    currentSong = songs[diff] || songs.easy;
+    sfxScale = sfxScales[diff] || sfxScales.easy;
+    bpm = currentSong.bpm;
+    beatDuration = 60 / bpm;
+    currentBeat = 0;
+    nextBeatTime = ctx.currentTime + 0.1;
+    isPlaying = true;
+    clearInterval(schedulerTimer);
+    schedulerTimer = setInterval(scheduler, 25);
+  }
+
+  function stopMusic() {
+    isPlaying = false;
+    clearInterval(schedulerTimer);
+  }
+
+  // ---- SFX for typing ----
+  function playTypeSfx() {
+    if (!ctx) return;
+    var freq = sfxScale[sfxNoteIdx % sfxScale.length];
+    sfxNoteIdx++;
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    var filt = ctx.createBiquadFilter();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq * 2, ctx.currentTime); // one octave up for clarity
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(3000, ctx.currentTime);
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.connect(filt);
+    filt.connect(g);
+    g.connect(sfxGain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.15);
+  }
+
+  function playMissSfx() {
+    if (!ctx) return;
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.connect(g);
+    g.connect(sfxGain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  }
+
+  function playWordCompleteSfx() {
+    if (!ctx) return;
+    // Rising arpeggio
+    var base = sfxScale[sfxNoteIdx % sfxScale.length];
+    [1, 1.25, 1.5, 2].forEach(function(ratio, i) {
+      setTimeout(function() {
+        var osc = ctx.createOscillator();
+        var g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(base * ratio * 2, ctx.currentTime);
+        g.gain.setValueAtTime(0.15, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(g);
+        g.connect(sfxGain);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.35);
+      }, i * 60);
+    });
+  }
+
+  function playComboSfx() {
+    if (!ctx) return;
+    // Ascending fanfare
+    var notes = [NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C5 * 2];
+    notes.forEach(function(n, i) {
+      setTimeout(function() {
+        var osc = ctx.createOscillator();
+        var g = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(n, ctx.currentTime);
+        var filt = ctx.createBiquadFilter();
+        filt.type = 'lowpass';
+        filt.frequency.value = 2000;
+        g.gain.setValueAtTime(0.1, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(filt);
+        filt.connect(g);
+        g.connect(sfxGain);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.25);
+      }, i * 80);
+    });
+  }
+
+  return {
+    init: init,
+    setVolume: setVolume,
+    startMusic: startMusic,
+    stopMusic: stopMusic,
+    playTypeSfx: playTypeSfx,
+    playMissSfx: playMissSfx,
+    playWordCompleteSfx: playWordCompleteSfx,
+    playComboSfx: playComboSfx
+  };
 })();
 
-// ============================================================
+
+// ================================================================
+// VISUALIZER
+// ================================================================
+var $visualizer = document.getElementById('visualizer');
+var vizBars = [];
+
+function initVisualizer() {
+  $visualizer.innerHTML = '';
+  vizBars = [];
+  for (var i = 0; i < 40; i++) {
+    var bar = document.createElement('div');
+    bar.className = 'viz-bar';
+    bar.style.height = '3px';
+    // Color gradient across bars
+    var hue = 240 + (i / 40) * 80;
+    bar.style.background = 'linear-gradient(to top, hsl(' + hue + ', 70%, 55%), hsl(' + (hue + 40) + ', 80%, 65%))';
+    $visualizer.appendChild(bar);
+    vizBars.push(bar);
+  }
+}
+
+function pulseVisualizer(isDownbeat) {
+  var max = isDownbeat ? 35 : 18;
+  for (var i = 0; i < vizBars.length; i++) {
+    var dist = Math.abs(i - vizBars.length / 2) / (vizBars.length / 2);
+    var h = max * (1 - dist * 0.6) + Math.random() * 8;
+    vizBars[i].style.height = h + 'px';
+  }
+  // Decay
+  setTimeout(function() {
+    for (var i = 0; i < vizBars.length; i++) {
+      vizBars[i].style.height = (3 + Math.random() * 4) + 'px';
+    }
+  }, 120);
+}
+
+function boostVisualizer() {
+  for (var i = 0; i < vizBars.length; i++) {
+    vizBars[i].style.height = (8 + Math.random() * 28) + 'px';
+  }
+  setTimeout(function() {
+    for (var i = 0; i < vizBars.length; i++) {
+      vizBars[i].style.height = (3 + Math.random() * 4) + 'px';
+    }
+  }, 150);
+}
+
+
+// ================================================================
 // WORD LISTS
-// ============================================================
+// ================================================================
 var WORDS = {
   easy: ['beat', 'drum', 'bass', 'tune', 'vibe', 'jazz', 'rock', 'song', 'note', 'loop',
          'funk', 'soul', 'wave', 'echo', 'riff', 'keys', 'drop', 'flow', 'mix', 'amp',
@@ -507,9 +1248,10 @@ var WORDS = {
          'amplitude', 'oscillator', 'resonance', 'overtones', 'polyphony', 'tremolo']
 };
 
-// ============================================================
+
+// ================================================================
 // GAME STATE
-// ============================================================
+// ================================================================
 var difficulty = 'easy';
 var gameActive = false;
 var score = 0;
@@ -525,17 +1267,17 @@ var fallingWords = [];
 var animFrame;
 var spawnTimer;
 var wordId = 0;
-var vizBars = [];
 
 var diffSettings = {
-  easy:   { speed: 0.6, spawnRate: 3000, bpm: 90, scale: 'pentatonic', maxWords: 30 },
-  medium: { speed: 0.9, spawnRate: 2200, bpm: 120, scale: 'major', maxWords: 35 },
-  hard:   { speed: 1.3, spawnRate: 1600, bpm: 150, scale: 'minor', maxWords: 40 },
+  easy:   { speed: 0.55, spawnRate: 3200, maxWords: 30 },
+  medium: { speed: 0.85, spawnRate: 2200, maxWords: 35 },
+  hard:   { speed: 1.2, spawnRate: 1600, maxWords: 40 }
 };
 
-// ============================================================
+
+// ================================================================
 // DOM REFS
-// ============================================================
+// ================================================================
 var $startScreen = document.getElementById('startScreen');
 var $gameArea = document.getElementById('gameArea');
 var $laneContainer = document.getElementById('laneContainer');
@@ -546,26 +1288,12 @@ var $streakVal = document.querySelector('#streak .hud-value');
 var $wpmVal = document.querySelector('#wpm .hud-value');
 var $comboFill = document.getElementById('comboFill');
 var $gameOver = document.getElementById('gameOver');
-var $visualizer = document.getElementById('visualizer');
+var $ambientGlow = document.getElementById('ambientGlow');
 
-// ============================================================
-// VISUALIZER BARS
-// ============================================================
-function initVisualizer() {
-  $visualizer.innerHTML = '';
-  vizBars = [];
-  for (var i = 0; i < 32; i++) {
-    var bar = document.createElement('div');
-    bar.className = 'viz-bar';
-    bar.style.height = '4px';
-    $visualizer.appendChild(bar);
-    vizBars.push(bar);
-  }
-}
 
-// ============================================================
+// ================================================================
 // SPAWN & MANAGE WORDS
-// ============================================================
+// ================================================================
 function getRandomWord() {
   var pool = WORDS[difficulty] || WORDS.easy;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -573,7 +1301,7 @@ function getRandomWord() {
 
 function spawnWord() {
   if (!gameActive) return;
-  if (fallingWords.length >= 6) return;
+  if (fallingWords.length >= 5) return;
 
   var word = getRandomWord();
   var id = wordId++;
@@ -583,22 +1311,18 @@ function spawnWord() {
   el.innerHTML = renderWord(word, 0);
 
   var containerW = $laneContainer.offsetWidth;
-  var minLeft = 80;
-  var maxLeft = containerW - 80;
-  var leftPx = minLeft + Math.random() * (maxLeft - minLeft);
+  var leftPx = 100 + Math.random() * (containerW - 200);
   el.style.left = leftPx + 'px';
   el.style.transform = 'translateX(-50%)';
   el.style.top = '-60px';
 
   $laneContainer.appendChild(el);
 
-  var wordObj = {
+  fallingWords.push({
     id: id, word: word, el: el, typed: 0,
     y: -60,
-    speed: diffSettings[difficulty].speed + Math.random() * 0.2,
-    active: false
-  };
-  fallingWords.push(wordObj);
+    speed: diffSettings[difficulty].speed + Math.random() * 0.15
+  });
 }
 
 function renderWord(word, typedCount) {
@@ -619,18 +1343,24 @@ function getActiveWord() {
   var best = null;
   var bestY = -Infinity;
   for (var i = 0; i < fallingWords.length; i++) {
-    var w = fallingWords[i];
-    if (w.y > bestY) {
-      bestY = w.y;
-      best = w;
+    if (fallingWords[i].y > bestY) {
+      bestY = fallingWords[i].y;
+      best = fallingWords[i];
     }
   }
   return best;
 }
 
-// ============================================================
+function removeWord(wordObj) {
+  var idx = fallingWords.indexOf(wordObj);
+  if (idx > -1) fallingWords.splice(idx, 1);
+  wordObj.el.remove();
+}
+
+
+// ================================================================
 // INPUT HANDLING
-// ============================================================
+// ================================================================
 $input.addEventListener('input', function() {
   if (!gameActive) return;
 
@@ -648,20 +1378,29 @@ $input.addEventListener('input', function() {
     combo++;
     if (combo > bestStreak) bestStreak = combo;
 
-    var points = 10 + Math.floor(combo * 2);
+    var points = 10 + Math.floor(combo * 2.5);
     score += points;
 
-    AudioEngine.playNote(null, 0.15 + (combo > 10 ? 0.05 : 0), 0.2);
-
-    vizBars.forEach(function(bar) {
-      bar.style.height = (5 + Math.random() * 25) + 'px';
-    });
-
+    MusicEngine.playTypeSfx();
+    boostVisualizer();
     spawnNoteParticle(active.el);
+    spawnSparks(active.el);
+
+    // Shift background hue with combo
+    bgHueTarget = 240 + combo * 3;
+    bgHue += (bgHueTarget - bgHue) * 0.1;
+
+    // Combo milestones
     if (combo > 0 && combo % 10 === 0) {
-      AudioEngine.playComboUp();
+      MusicEngine.playComboSfx();
       flashScreen();
+      showComboBurst(combo);
     }
+
+    // Update ambient glow color based on combo
+    var glowHue = 240 + combo * 4;
+    var glowAlpha = Math.min(0.08 + combo * 0.005, 0.25);
+    $ambientGlow.style.background = 'radial-gradient(ellipse, hsla(' + glowHue + ', 70%, 50%, ' + glowAlpha + ') 0%, transparent 70%)';
 
     fallingWords.forEach(function(w) { w.el.classList.remove('active'); });
     active.el.classList.add('active');
@@ -669,8 +1408,9 @@ $input.addEventListener('input', function() {
 
     if (active.typed >= active.word.length) {
       wordsCompleted++;
-      AudioEngine.playWordComplete();
+      MusicEngine.playWordCompleteSfx();
       showRating(active.el, 'perfect');
+      spawnBurstParticles(active.el);
       removeWord(active);
       $input.value = '';
 
@@ -683,10 +1423,15 @@ $input.addEventListener('input', function() {
     wrongChars++;
     totalCharsTyped++;
     combo = 0;
-    AudioEngine.playMiss();
+    bgHueTarget = 240;
+    MusicEngine.playMissSfx();
     showRating(active.el, 'miss');
     $input.classList.add('miss-shake');
-    setTimeout(function() { $input.classList.remove('miss-shake'); }, 300);
+    $ambientGlow.style.background = 'radial-gradient(ellipse, rgba(255, 50, 50, 0.1) 0%, transparent 70%)';
+    setTimeout(function() {
+      $input.classList.remove('miss-shake');
+      $ambientGlow.style.background = 'radial-gradient(ellipse, rgba(120, 115, 245, 0.08) 0%, transparent 70%)';
+    }, 300);
   }
 
   $input.value = '';
@@ -697,27 +1442,68 @@ $input.addEventListener('keydown', function(e) {
   if (e.key === 'Tab' || e.key === 'Escape') e.preventDefault();
 });
 
-// ============================================================
-// EFFECTS
-// ============================================================
+
+// ================================================================
+// VISUAL EFFECTS
+// ================================================================
 function spawnNoteParticle(el) {
   var rect = el.getBoundingClientRect();
-  var symbols = ['\u266A', '\u266B', '\u2669', '\u266C', '\u2605'];
+  var symbols = ['\u266A', '\u266B', '\u2669', '\u266C', '\u2605', '\u2726'];
   var particle = document.createElement('div');
   particle.className = 'note-particle';
   particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
   particle.style.left = (rect.left + Math.random() * rect.width) + 'px';
   particle.style.top = rect.top + 'px';
-  particle.style.color = ['#ff6ec7', '#4fc3f7', '#ffeb3b', '#69f0ae'][Math.floor(Math.random() * 4)];
+  particle.style.color = ['#ff6ec7', '#4fc3f7', '#ffeb3b', '#69f0ae', '#bb86fc'][Math.floor(Math.random() * 5)];
   document.body.appendChild(particle);
-  setTimeout(function() { particle.remove(); }, 1000);
+  setTimeout(function() { particle.remove(); }, 1200);
+}
+
+function spawnSparks(el) {
+  var rect = el.getBoundingClientRect();
+  var cx = rect.left + rect.width / 2;
+  var cy = rect.top + rect.height / 2;
+  for (var i = 0; i < 4; i++) {
+    var spark = document.createElement('div');
+    spark.className = 'spark';
+    spark.style.left = cx + 'px';
+    spark.style.top = cy + 'px';
+    var angle = Math.random() * Math.PI * 2;
+    var dist = 30 + Math.random() * 40;
+    spark.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+    spark.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+    spark.style.background = ['#ff6ec7', '#4fc3f7', '#ffeb3b', '#69f0ae'][Math.floor(Math.random() * 4)];
+    document.body.appendChild(spark);
+    setTimeout(function(s) { return function() { s.remove(); }; }(spark), 600);
+  }
+}
+
+function spawnBurstParticles(el) {
+  var rect = el.getBoundingClientRect();
+  var cx = rect.left + rect.width / 2;
+  var cy = rect.top + rect.height / 2;
+  for (var i = 0; i < 10; i++) {
+    var spark = document.createElement('div');
+    spark.className = 'spark';
+    spark.style.left = cx + 'px';
+    spark.style.top = cy + 'px';
+    var angle = (Math.PI * 2 / 10) * i + Math.random() * 0.3;
+    var dist = 50 + Math.random() * 60;
+    spark.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+    spark.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+    spark.style.width = '6px';
+    spark.style.height = '6px';
+    spark.style.background = ['#ff6ec7', '#4fc3f7', '#ffeb3b', '#69f0ae', '#bb86fc'][i % 5];
+    document.body.appendChild(spark);
+    setTimeout(function(s) { return function() { s.remove(); }; }(spark), 600);
+  }
 }
 
 function flashScreen() {
   var flash = document.createElement('div');
   flash.className = 'hit-flash';
   document.body.appendChild(flash);
-  setTimeout(function() { flash.remove(); }, 200);
+  setTimeout(function() { flash.remove(); }, 250);
 }
 
 function showRating(el, type) {
@@ -726,21 +1512,24 @@ function showRating(el, type) {
   var popup = document.createElement('div');
   popup.className = 'rating-popup ' + type;
   popup.textContent = labels[type];
-  popup.style.left = rect.left + rect.width / 2 - 30 + 'px';
-  popup.style.top = rect.top - 20 + 'px';
+  popup.style.left = rect.left + rect.width / 2 - 35 + 'px';
+  popup.style.top = rect.top - 25 + 'px';
   document.body.appendChild(popup);
-  setTimeout(function() { popup.remove(); }, 800);
+  setTimeout(function() { popup.remove(); }, 900);
 }
 
-// ============================================================
+function showComboBurst(num) {
+  var el = document.createElement('div');
+  el.className = 'combo-burst';
+  el.textContent = num + 'x COMBO!';
+  document.body.appendChild(el);
+  setTimeout(function() { el.remove(); }, 1000);
+}
+
+
+// ================================================================
 // GAME LOOP
-// ============================================================
-function removeWord(wordObj) {
-  var idx = fallingWords.indexOf(wordObj);
-  if (idx > -1) fallingWords.splice(idx, 1);
-  wordObj.el.remove();
-}
-
+// ================================================================
 function gameLoop() {
   if (!gameActive) return;
 
@@ -751,10 +1540,18 @@ function gameLoop() {
     w.y += w.speed;
     w.el.style.top = w.y + 'px';
 
+    // Glow effect as word approaches hit line
+    var proximity = w.y / containerH;
+    if (proximity > 0.7) {
+      var glow = (proximity - 0.7) / 0.3;
+      w.el.style.borderColor = 'rgba(255, ' + Math.round(80 + glow * 100) + ', ' + Math.round(100 + glow * 50) + ', ' + (0.4 + glow * 0.6) + ')';
+    }
+
     if (w.y > containerH - 10) {
       wordsMissed++;
       combo = 0;
-      AudioEngine.playMiss();
+      bgHueTarget = 240;
+      MusicEngine.playMissSfx();
       showRating(w.el, 'miss');
       removeWord(w);
       updateHUD();
@@ -766,6 +1563,7 @@ function gameLoop() {
     }
   }
 
+  // Highlight active word
   var active = getActiveWord();
   fallingWords.forEach(function(w) {
     if (w === active) {
@@ -775,6 +1573,9 @@ function gameLoop() {
     }
   });
 
+  // Drift background hue
+  bgHue += (bgHueTarget - bgHue) * 0.02;
+
   animFrame = requestAnimationFrame(gameLoop);
 }
 
@@ -782,6 +1583,14 @@ function updateHUD() {
   $comboVal.textContent = combo;
   $scoreVal.textContent = score.toLocaleString();
   $streakVal.textContent = bestStreak;
+
+  // Pop animation
+  $comboVal.classList.add('pop');
+  $scoreVal.classList.add('pop');
+  setTimeout(function() {
+    $comboVal.classList.remove('pop');
+    $scoreVal.classList.remove('pop');
+  }, 100);
 
   var elapsed = (Date.now() - gameStartTime) / 60000;
   var wpm = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
@@ -791,14 +1600,13 @@ function updateHUD() {
   $comboFill.style.width = pct + '%';
 }
 
-// ============================================================
+
+// ================================================================
 // START / END
-// ============================================================
+// ================================================================
 function startGame() {
-  AudioEngine.init();
-  var settings = diffSettings[difficulty];
-  AudioEngine.setScale(settings.scale);
-  AudioEngine.startBeat(settings.bpm);
+  MusicEngine.init();
+  MusicEngine.startMusic(difficulty);
 
   score = 0;
   combo = 0;
@@ -811,6 +1619,8 @@ function startGame() {
   fallingWords = [];
   gameStartTime = Date.now();
   gameActive = true;
+  bgHue = 240;
+  bgHueTarget = 240;
 
   $laneContainer.querySelectorAll('.word-block').forEach(function(el) { el.remove(); });
   $gameOver.classList.remove('show');
@@ -822,13 +1632,13 @@ function startGame() {
   initVisualizer();
 
   spawnWord();
-  spawnTimer = setInterval(spawnWord, settings.spawnRate);
+  spawnTimer = setInterval(spawnWord, diffSettings[difficulty].spawnRate);
   animFrame = requestAnimationFrame(gameLoop);
 }
 
 function endGame() {
   gameActive = false;
-  AudioEngine.stopBeat();
+  MusicEngine.stopMusic();
   cancelAnimationFrame(animFrame);
   clearInterval(spawnTimer);
 
@@ -844,9 +1654,10 @@ function endGame() {
   $gameOver.classList.add('show');
 }
 
-// ============================================================
+
+// ================================================================
 // EVENT LISTENERS
-// ============================================================
+// ================================================================
 document.querySelectorAll('.diff-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.diff-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -857,6 +1668,10 @@ document.querySelectorAll('.diff-btn').forEach(function(btn) {
 
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('restartBtn').addEventListener('click', startGame);
+
+document.getElementById('volumeSlider').addEventListener('input', function() {
+  MusicEngine.setVolume(this.value / 100);
+});
 
 document.addEventListener('click', function() {
   if (gameActive) $input.focus();
