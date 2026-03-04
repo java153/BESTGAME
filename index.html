@@ -1,91 +1,872 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SoCal Food Truck Sim</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeBeat - Musical Typing Game</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a1a;
+  color: #fff;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  user-select: none;
+}
+
+#startScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 70%);
+  z-index: 100;
+  transition: opacity 0.5s;
+}
+
+#startScreen.hidden { opacity: 0; pointer-events: none; }
+
+#startScreen h1 {
+  font-size: 5rem;
+  background: linear-gradient(135deg, #ff6ec7, #7873f5, #4fc3f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+#startScreen .subtitle {
+  font-size: 1.2rem;
+  color: #8888bb;
+  margin-bottom: 2rem;
+}
+
+.difficulty-select {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.diff-btn {
+  padding: 0.8rem 1.8rem;
+  border: 2px solid #444;
+  background: transparent;
+  color: #ccc;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.diff-btn:hover, .diff-btn.active {
+  border-color: #7873f5;
+  color: #fff;
+  background: rgba(120, 115, 245, 0.2);
+}
+
+#startBtn {
+  padding: 1rem 3rem;
+  font-size: 1.4rem;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #7873f5, #4fc3f7);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#startBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(120, 115, 245, 0.5);
+}
+
+#gameArea {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(ellipse at 50% 100%, #1a1a3e 0%, #0a0a1a 60%);
+}
+
+#laneContainer {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: calc(100vh - 200px);
+  overflow: hidden;
+}
+
+.hitLine {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #7873f5, #ff6ec7, #7873f5, transparent);
+  box-shadow: 0 0 15px rgba(120, 115, 245, 0.5);
+}
+
+.word-block {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.6rem 1.5rem;
+  background: rgba(30, 30, 60, 0.85);
+  border: 2px solid #444;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  transition: border-color 0.15s;
+  text-align: center;
+}
+
+.word-block.active {
+  border-color: #7873f5;
+  box-shadow: 0 0 20px rgba(120, 115, 245, 0.4);
+}
+
+.word-block .typed { color: #4fc3f7; }
+.word-block .untyped { color: #aaa; }
+.word-block .cursor-char {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+#inputArea {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#typingInput {
+  width: 400px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.12em;
+  background: rgba(20, 20, 50, 0.9);
+  border: 2px solid #333;
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+#typingInput:focus {
+  border-color: #7873f5;
+}
+
+#hud {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 30px;
+  font-size: 1rem;
+  z-index: 10;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hud-label { color: #666; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.hud-value { font-size: 1.8rem; font-weight: bold; }
+
+#combo .hud-value { color: #ff6ec7; }
+#score .hud-value { color: #4fc3f7; }
+#streak .hud-value { color: #ffeb3b; }
+#wpm .hud-value { color: #69f0ae; }
+
+#comboBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+}
+
+#comboFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7873f5, #ff6ec7, #ffeb3b);
+  transition: width 0.3s;
+}
+
+.note-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 1.5rem;
+  z-index: 200;
+  animation: noteFloat 1s ease-out forwards;
+}
+
+@keyframes noteFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0.3); }
+}
+
+.hit-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  animation: flashPulse 0.15s ease-out;
+}
+
+@keyframes flashPulse {
+  0% { background: rgba(120, 115, 245, 0.15); }
+  100% { background: transparent; }
+}
+
+.miss-shake {
+  animation: shake 0.3s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(-50%); }
+  25% { transform: translateX(calc(-50% - 6px)); }
+  75% { transform: translateX(calc(-50% + 6px)); }
+}
+
+#gameOver {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 26, 0.95);
+  z-index: 100;
+}
+
+#gameOver.show { display: flex; }
+
+#gameOver h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ff6ec7, #7873f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.stat-box {
+  text-align: center;
+  padding: 1rem 2rem;
+  background: rgba(30, 30, 60, 0.6);
+  border-radius: 10px;
+}
+
+.stat-box .stat-val { font-size: 2.2rem; font-weight: bold; color: #4fc3f7; }
+.stat-box .stat-label { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-top: 0.3rem; }
+
+#restartBtn {
+  padding: 0.8rem 2.5rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #7873f5, #4fc3f7);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+#restartBtn:hover { transform: scale(1.05); }
+
+.visualizer {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 30px;
+  opacity: 0.5;
+}
+
+.viz-bar {
+  width: 4px;
+  background: linear-gradient(to top, #7873f5, #ff6ec7);
+  border-radius: 2px;
+  transition: height 0.1s;
+}
+
+.rating-popup {
+  position: absolute;
+  font-size: 1.2rem;
+  font-weight: bold;
+  pointer-events: none;
+  animation: ratingPop 0.8s ease-out forwards;
+  z-index: 60;
+}
+
+.rating-popup.perfect { color: #ffeb3b; }
+.rating-popup.great { color: #69f0ae; }
+.rating-popup.good { color: #4fc3f7; }
+.rating-popup.miss { color: #ff5252; }
+
+@keyframes ratingPop {
+  0% { opacity: 1; transform: translateY(0) scale(1.3); }
+  100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+}
+</style>
 </head>
 <body>
-  <div id="game">
 
-    <!-- ===== STATUS BAR ===== -->
-    <header id="status-bar">
-      <div class="status-item">
-        <span class="status-label">Day</span>
-        <span class="status-val" id="day-display">1 / 30</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Cash</span>
-        <span class="status-val" id="cash-display">$300.00</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Rep</span>
-        <span class="status-val" id="rep-display">50 / 100</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Day</span>
-        <span class="status-val" id="dow-display">Monday</span>
-      </div>
-    </header>
-
-    <!-- ===== INTRO SCREEN ===== -->
-    <section id="phase-intro" class="phase">
-      <div class="intro-container">
-        <h1 class="game-title">SoCal Food Truck Sim</h1>
-        <div class="intro-truck">&#x1F69B;</div>
-        <p class="intro-subtitle">Run your own Mexican food truck in sunny California</p>
-        <div class="intro-story">
-          <p>You just bought a beat-up food truck with your last <strong>$300</strong>.
-          Armed with your abuela's recipes and a dream, you're hitting the streets of SoCal.</p>
-          <p>Serve up carne asada fries, Cali burritos, street tacos, and ice-cold horchata.
-          Pick the right location. Set smart prices. Don't run out of avocados.</p>
-          <div class="intro-goals">
-            <h3>Win Conditions (by Day 30):</h3>
-            <ul>
-              <li>Grow your cash to <strong>$5,000</strong>, OR</li>
-              <li>Build your reputation to <strong>80+</strong></li>
-            </ul>
-            <h3>Lose Conditions:</h3>
-            <ul>
-              <li>Run out of money (cash &lt; $0)</li>
-              <li>Reputation drops below 10 (permit revoked)</li>
-            </ul>
-          </div>
-        </div>
-        <button id="btn-start-game" class="btn-big">&#x1F525; Let's Cook!</button>
-      </div>
-    </section>
-
-    <!-- ===== MORNING BRIEFING ===== -->
-    <section id="phase-briefing" class="phase hidden">
-      <div id="briefing-content"></div>
-      <div class="nav-btn-container">
-        <button id="btn-to-planning" class="btn-big">&#x1F4CB; Start Planning &rarr;</button>
-      </div>
-    </section>
-
-    <!-- ===== PLANNING PHASE ===== -->
-    <section id="phase-planning" class="phase hidden">
-      <div id="planning-content"></div>
-    </section>
-
-    <!-- ===== RESULTS PHASE ===== -->
-    <section id="phase-results" class="phase hidden">
-      <div id="results-content"></div>
-    </section>
-
-    <!-- ===== GAME OVER ===== -->
-    <section id="phase-gameover" class="phase hidden">
-      <div id="gameover-content"></div>
-    </section>
-
+<div id="startScreen">
+  <h1>TYPEBEAT</h1>
+  <p class="subtitle">Type to the rhythm. Build the melody. Chase the high score.</p>
+  <div class="difficulty-select">
+    <button class="diff-btn active" data-diff="easy">Chill</button>
+    <button class="diff-btn" data-diff="medium">Groove</button>
+    <button class="diff-btn" data-diff="hard">Frenzy</button>
   </div>
+  <button id="startBtn">START</button>
+</div>
 
-  <!-- Scripts: load order matters (data → engine → ui → main) -->
-  <script src="js/data.js"></script>
-  <script src="js/engine.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/main.js"></script>
+<div id="gameArea">
+  <div id="comboBar"><div id="comboFill"></div></div>
+  <div id="hud">
+    <div class="hud-item" id="combo"><span class="hud-label">Combo</span><span class="hud-value">0</span></div>
+    <div class="hud-item" id="wpm"><span class="hud-label">WPM</span><span class="hud-value">0</span></div>
+    <div class="hud-item" id="score"><span class="hud-label">Score</span><span class="hud-value">0</span></div>
+    <div class="hud-item" id="streak"><span class="hud-label">Best Streak</span><span class="hud-value">0</span></div>
+  </div>
+  <div id="laneContainer">
+    <div class="hitLine"></div>
+  </div>
+  <div class="visualizer" id="visualizer"></div>
+  <div id="inputArea">
+    <input type="text" id="typingInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type here...">
+  </div>
+</div>
+
+<div id="gameOver">
+  <h2>SONG COMPLETE</h2>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-val" id="finalScore">0</div><div class="stat-label">Score</div></div>
+    <div class="stat-box"><div class="stat-val" id="finalWpm">0</div><div class="stat-label">Avg WPM</div></div>
+    <div class="stat-box"><div class="stat-val" id="finalAccuracy">0%</div><div class="stat-label">Accuracy</div></div>
+    <div class="stat-box"><div class="stat-val" id="finalStreak">0</div><div class="stat-label">Best Streak</div></div>
+  </div>
+  <button id="restartBtn">PLAY AGAIN</button>
+</div>
+
+<script>
+// ============================================================
+// AUDIO ENGINE - Web Audio API synth
+// ============================================================
+const AudioEngine = (() => {
+  let ctx;
+  const scales = {
+    pentatonic: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
+    major: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
+    minor: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16, 523.25],
+  };
+  let currentScale = scales.pentatonic;
+  let noteIndex = 0;
+  let beatInterval;
+
+  function init() {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  function playNote(freqOverride, duration, volume, type) {
+    if (!ctx) return;
+    duration = duration || 0.18;
+    volume = volume || 0.25;
+    type = type || 'triangle';
+    const freq = freqOverride || currentScale[noteIndex % currentScale.length];
+    noteIndex++;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2000, ctx.currentTime);
+
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  }
+
+  function playChord(baseFreq, duration) {
+    if (!ctx) return;
+    duration = duration || 0.3;
+    [1, 1.25, 1.5].forEach(function(ratio, i) {
+      setTimeout(function() { playNote(baseFreq * ratio, duration, 0.15, 'sine'); }, i * 30);
+    });
+  }
+
+  function playMiss() {
+    if (!ctx) return;
+    playNote(150, 0.2, 0.15, 'sawtooth');
+  }
+
+  function playComboUp() {
+    if (!ctx) return;
+    const base = currentScale[noteIndex % currentScale.length];
+    [0, 50, 100].forEach(function(delay, i) {
+      setTimeout(function() { playNote(base * (1 + i * 0.25), 0.15, 0.12, 'sine'); }, delay);
+    });
+  }
+
+  function playWordComplete() {
+    if (!ctx) return;
+    const base = currentScale[Math.floor(Math.random() * currentScale.length)];
+    playChord(base, 0.4);
+  }
+
+  function startBeat(bpm) {
+    const interval = (60 / bpm) * 1000;
+    let tick = 0;
+    clearInterval(beatInterval);
+    beatInterval = setInterval(function() {
+      if (!ctx) return;
+      const freq = tick % 4 === 0 ? 80 : 60;
+      const vol = tick % 4 === 0 ? 0.08 : 0.04;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.08);
+      tick++;
+
+      vizBars.forEach(function(bar) {
+        const h = (tick % 4 === 0 ? 20 : 8) + Math.random() * 10;
+        bar.style.height = h + 'px';
+      });
+    }, interval);
+  }
+
+  function stopBeat() {
+    clearInterval(beatInterval);
+  }
+
+  function setScale(name) {
+    if (scales[name]) currentScale = scales[name];
+  }
+
+  return { init: init, playNote: playNote, playMiss: playMiss, playComboUp: playComboUp, playWordComplete: playWordComplete, startBeat: startBeat, stopBeat: stopBeat, setScale: setScale };
+})();
+
+// ============================================================
+// WORD LISTS
+// ============================================================
+var WORDS = {
+  easy: ['beat', 'drum', 'bass', 'tune', 'vibe', 'jazz', 'rock', 'song', 'note', 'loop',
+         'funk', 'soul', 'wave', 'echo', 'riff', 'keys', 'drop', 'flow', 'mix', 'amp',
+         'hum', 'pop', 'rap', 'dub', 'set', 'mic', 'hit', 'jam', 'gig', 'ear'],
+  medium: ['rhythm', 'melody', 'groove', 'tempo', 'chord', 'treble', 'bridge', 'chorus',
+           'octave', 'reverb', 'stereo', 'sample', 'filter', 'snare', 'pedal', 'lyric',
+           'refrain', 'ballad', 'encore', 'fusion', 'timbre', 'accent', 'legato', 'forte'],
+  hard: ['syncopation', 'crescendo', 'harmonics', 'fortissimo', 'diminuendo', 'arpeggio',
+         'staccato', 'glissando', 'vibrato', 'polyrhythm', 'counterpoint', 'chromatic',
+         'dissonance', 'modulation', 'transpose', 'metronome', 'synthesizer', 'frequency',
+         'amplitude', 'oscillator', 'resonance', 'overtones', 'polyphony', 'tremolo']
+};
+
+// ============================================================
+// GAME STATE
+// ============================================================
+var difficulty = 'easy';
+var gameActive = false;
+var score = 0;
+var combo = 0;
+var bestStreak = 0;
+var totalCharsTyped = 0;
+var correctChars = 0;
+var wrongChars = 0;
+var gameStartTime = 0;
+var wordsCompleted = 0;
+var wordsMissed = 0;
+var fallingWords = [];
+var animFrame;
+var spawnTimer;
+var wordId = 0;
+var vizBars = [];
+
+var diffSettings = {
+  easy:   { speed: 0.6, spawnRate: 3000, bpm: 90, scale: 'pentatonic', maxWords: 30 },
+  medium: { speed: 0.9, spawnRate: 2200, bpm: 120, scale: 'major', maxWords: 35 },
+  hard:   { speed: 1.3, spawnRate: 1600, bpm: 150, scale: 'minor', maxWords: 40 },
+};
+
+// ============================================================
+// DOM REFS
+// ============================================================
+var $startScreen = document.getElementById('startScreen');
+var $gameArea = document.getElementById('gameArea');
+var $laneContainer = document.getElementById('laneContainer');
+var $input = document.getElementById('typingInput');
+var $comboVal = document.querySelector('#combo .hud-value');
+var $scoreVal = document.querySelector('#score .hud-value');
+var $streakVal = document.querySelector('#streak .hud-value');
+var $wpmVal = document.querySelector('#wpm .hud-value');
+var $comboFill = document.getElementById('comboFill');
+var $gameOver = document.getElementById('gameOver');
+var $visualizer = document.getElementById('visualizer');
+
+// ============================================================
+// VISUALIZER BARS
+// ============================================================
+function initVisualizer() {
+  $visualizer.innerHTML = '';
+  vizBars = [];
+  for (var i = 0; i < 32; i++) {
+    var bar = document.createElement('div');
+    bar.className = 'viz-bar';
+    bar.style.height = '4px';
+    $visualizer.appendChild(bar);
+    vizBars.push(bar);
+  }
+}
+
+// ============================================================
+// SPAWN & MANAGE WORDS
+// ============================================================
+function getRandomWord() {
+  var pool = WORDS[difficulty] || WORDS.easy;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function spawnWord() {
+  if (!gameActive) return;
+  if (fallingWords.length >= 6) return;
+
+  var word = getRandomWord();
+  var id = wordId++;
+  var el = document.createElement('div');
+  el.className = 'word-block';
+  el.dataset.id = id;
+  el.innerHTML = renderWord(word, 0);
+
+  var containerW = $laneContainer.offsetWidth;
+  var minLeft = 80;
+  var maxLeft = containerW - 80;
+  var leftPx = minLeft + Math.random() * (maxLeft - minLeft);
+  el.style.left = leftPx + 'px';
+  el.style.transform = 'translateX(-50%)';
+  el.style.top = '-60px';
+
+  $laneContainer.appendChild(el);
+
+  var wordObj = {
+    id: id, word: word, el: el, typed: 0,
+    y: -60,
+    speed: diffSettings[difficulty].speed + Math.random() * 0.2,
+    active: false
+  };
+  fallingWords.push(wordObj);
+}
+
+function renderWord(word, typedCount) {
+  var html = '';
+  for (var i = 0; i < word.length; i++) {
+    if (i < typedCount) {
+      html += '<span class="typed">' + word[i] + '</span>';
+    } else if (i === typedCount) {
+      html += '<span class="cursor-char">' + word[i] + '</span>';
+    } else {
+      html += '<span class="untyped">' + word[i] + '</span>';
+    }
+  }
+  return html;
+}
+
+function getActiveWord() {
+  var best = null;
+  var bestY = -Infinity;
+  for (var i = 0; i < fallingWords.length; i++) {
+    var w = fallingWords[i];
+    if (w.y > bestY) {
+      bestY = w.y;
+      best = w;
+    }
+  }
+  return best;
+}
+
+// ============================================================
+// INPUT HANDLING
+// ============================================================
+$input.addEventListener('input', function() {
+  if (!gameActive) return;
+
+  var active = getActiveWord();
+  if (!active) return;
+
+  var inputVal = $input.value;
+  var expected = active.word[active.typed];
+  var lastChar = inputVal[inputVal.length - 1];
+
+  if (lastChar === expected) {
+    active.typed++;
+    correctChars++;
+    totalCharsTyped++;
+    combo++;
+    if (combo > bestStreak) bestStreak = combo;
+
+    var points = 10 + Math.floor(combo * 2);
+    score += points;
+
+    AudioEngine.playNote(null, 0.15 + (combo > 10 ? 0.05 : 0), 0.2);
+
+    vizBars.forEach(function(bar) {
+      bar.style.height = (5 + Math.random() * 25) + 'px';
+    });
+
+    spawnNoteParticle(active.el);
+    if (combo > 0 && combo % 10 === 0) {
+      AudioEngine.playComboUp();
+      flashScreen();
+    }
+
+    fallingWords.forEach(function(w) { w.el.classList.remove('active'); });
+    active.el.classList.add('active');
+    active.el.innerHTML = renderWord(active.word, active.typed);
+
+    if (active.typed >= active.word.length) {
+      wordsCompleted++;
+      AudioEngine.playWordComplete();
+      showRating(active.el, 'perfect');
+      removeWord(active);
+      $input.value = '';
+
+      if (wordsCompleted + wordsMissed >= diffSettings[difficulty].maxWords) {
+        endGame();
+        return;
+      }
+    }
+  } else if (lastChar !== undefined) {
+    wrongChars++;
+    totalCharsTyped++;
+    combo = 0;
+    AudioEngine.playMiss();
+    showRating(active.el, 'miss');
+    $input.classList.add('miss-shake');
+    setTimeout(function() { $input.classList.remove('miss-shake'); }, 300);
+  }
+
+  $input.value = '';
+  updateHUD();
+});
+
+$input.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab' || e.key === 'Escape') e.preventDefault();
+});
+
+// ============================================================
+// EFFECTS
+// ============================================================
+function spawnNoteParticle(el) {
+  var rect = el.getBoundingClientRect();
+  var symbols = ['\u266A', '\u266B', '\u2669', '\u266C', '\u2605'];
+  var particle = document.createElement('div');
+  particle.className = 'note-particle';
+  particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+  particle.style.left = (rect.left + Math.random() * rect.width) + 'px';
+  particle.style.top = rect.top + 'px';
+  particle.style.color = ['#ff6ec7', '#4fc3f7', '#ffeb3b', '#69f0ae'][Math.floor(Math.random() * 4)];
+  document.body.appendChild(particle);
+  setTimeout(function() { particle.remove(); }, 1000);
+}
+
+function flashScreen() {
+  var flash = document.createElement('div');
+  flash.className = 'hit-flash';
+  document.body.appendChild(flash);
+  setTimeout(function() { flash.remove(); }, 200);
+}
+
+function showRating(el, type) {
+  var rect = el.getBoundingClientRect();
+  var labels = { perfect: 'PERFECT!', great: 'GREAT!', good: 'GOOD', miss: 'MISS' };
+  var popup = document.createElement('div');
+  popup.className = 'rating-popup ' + type;
+  popup.textContent = labels[type];
+  popup.style.left = rect.left + rect.width / 2 - 30 + 'px';
+  popup.style.top = rect.top - 20 + 'px';
+  document.body.appendChild(popup);
+  setTimeout(function() { popup.remove(); }, 800);
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+function removeWord(wordObj) {
+  var idx = fallingWords.indexOf(wordObj);
+  if (idx > -1) fallingWords.splice(idx, 1);
+  wordObj.el.remove();
+}
+
+function gameLoop() {
+  if (!gameActive) return;
+
+  var containerH = $laneContainer.offsetHeight;
+
+  for (var i = fallingWords.length - 1; i >= 0; i--) {
+    var w = fallingWords[i];
+    w.y += w.speed;
+    w.el.style.top = w.y + 'px';
+
+    if (w.y > containerH - 10) {
+      wordsMissed++;
+      combo = 0;
+      AudioEngine.playMiss();
+      showRating(w.el, 'miss');
+      removeWord(w);
+      updateHUD();
+
+      if (wordsCompleted + wordsMissed >= diffSettings[difficulty].maxWords) {
+        endGame();
+        return;
+      }
+    }
+  }
+
+  var active = getActiveWord();
+  fallingWords.forEach(function(w) {
+    if (w === active) {
+      w.el.classList.add('active');
+    } else {
+      w.el.classList.remove('active');
+    }
+  });
+
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+function updateHUD() {
+  $comboVal.textContent = combo;
+  $scoreVal.textContent = score.toLocaleString();
+  $streakVal.textContent = bestStreak;
+
+  var elapsed = (Date.now() - gameStartTime) / 60000;
+  var wpm = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
+  $wpmVal.textContent = wpm;
+
+  var pct = Math.min(combo / 30 * 100, 100);
+  $comboFill.style.width = pct + '%';
+}
+
+// ============================================================
+// START / END
+// ============================================================
+function startGame() {
+  AudioEngine.init();
+  var settings = diffSettings[difficulty];
+  AudioEngine.setScale(settings.scale);
+  AudioEngine.startBeat(settings.bpm);
+
+  score = 0;
+  combo = 0;
+  bestStreak = 0;
+  totalCharsTyped = 0;
+  correctChars = 0;
+  wrongChars = 0;
+  wordsCompleted = 0;
+  wordsMissed = 0;
+  fallingWords = [];
+  gameStartTime = Date.now();
+  gameActive = true;
+
+  $laneContainer.querySelectorAll('.word-block').forEach(function(el) { el.remove(); });
+  $gameOver.classList.remove('show');
+  $startScreen.classList.add('hidden');
+
+  $input.value = '';
+  $input.focus();
+  updateHUD();
+  initVisualizer();
+
+  spawnWord();
+  spawnTimer = setInterval(spawnWord, settings.spawnRate);
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+function endGame() {
+  gameActive = false;
+  AudioEngine.stopBeat();
+  cancelAnimationFrame(animFrame);
+  clearInterval(spawnTimer);
+
+  var elapsed = (Date.now() - gameStartTime) / 60000;
+  var wpm = elapsed > 0 ? Math.round((correctChars / 5) / elapsed) : 0;
+  var accuracy = totalCharsTyped > 0 ? Math.round((correctChars / totalCharsTyped) * 100) : 0;
+
+  document.getElementById('finalScore').textContent = score.toLocaleString();
+  document.getElementById('finalWpm').textContent = wpm;
+  document.getElementById('finalAccuracy').textContent = accuracy + '%';
+  document.getElementById('finalStreak').textContent = bestStreak;
+
+  $gameOver.classList.add('show');
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+document.querySelectorAll('.diff-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.diff-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    difficulty = btn.dataset.diff;
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('restartBtn').addEventListener('click', startGame);
+
+document.addEventListener('click', function() {
+  if (gameActive) $input.focus();
+});
+
+document.addEventListener('keydown', function() {
+  if (gameActive && document.activeElement !== $input) {
+    $input.focus();
+  }
+});
+</script>
 </body>
 </html>
