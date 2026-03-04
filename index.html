@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoCal Food Truck Sim</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+
+    <!-- ===== STATUS BAR ===== -->
+    <header id="status-bar">
+      <div class="status-item">
+        <span class="status-label">Day</span>
+        <span class="status-val" id="day-display">1 / 30</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Cash</span>
+        <span class="status-val" id="cash-display">$300.00</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Rep</span>
+        <span class="status-val" id="rep-display">50 / 100</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Day</span>
+        <span class="status-val" id="dow-display">Monday</span>
+      </div>
+    </header>
+
+    <!-- ===== INTRO SCREEN ===== -->
+    <section id="phase-intro" class="phase">
+      <div class="intro-container">
+        <h1 class="game-title">SoCal Food Truck Sim</h1>
+        <div class="intro-truck">&#x1F69B;</div>
+        <p class="intro-subtitle">Run your own Mexican food truck in sunny California</p>
+        <div class="intro-story">
+          <p>You just bought a beat-up food truck with your last <strong>$300</strong>.
+          Armed with your abuela's recipes and a dream, you're hitting the streets of SoCal.</p>
+          <p>Serve up carne asada fries, Cali burritos, street tacos, and ice-cold horchata.
+          Pick the right location. Set smart prices. Don't run out of avocados.</p>
+          <div class="intro-goals">
+            <h3>Win Conditions (by Day 30):</h3>
+            <ul>
+              <li>Grow your cash to <strong>$5,000</strong>, OR</li>
+              <li>Build your reputation to <strong>80+</strong></li>
+            </ul>
+            <h3>Lose Conditions:</h3>
+            <ul>
+              <li>Run out of money (cash &lt; $0)</li>
+              <li>Reputation drops below 10 (permit revoked)</li>
+            </ul>
+          </div>
+        </div>
+        <button id="btn-start-game" class="btn-big">&#x1F525; Let's Cook!</button>
+      </div>
+    </section>
+
+    <!-- ===== MORNING BRIEFING ===== -->
+    <section id="phase-briefing" class="phase hidden">
+      <div id="briefing-content"></div>
+      <div class="nav-btn-container">
+        <button id="btn-to-planning" class="btn-big">&#x1F4CB; Start Planning &rarr;</button>
+      </div>
+    </section>
+
+    <!-- ===== PLANNING PHASE ===== -->
+    <section id="phase-planning" class="phase hidden">
+      <div id="planning-content"></div>
+    </section>
+
+    <!-- ===== RESULTS PHASE ===== -->
+    <section id="phase-results" class="phase hidden">
+      <div id="results-content"></div>
+    </section>
+
+    <!-- ===== GAME OVER ===== -->
+    <section id="phase-gameover" class="phase hidden">
+      <div id="gameover-content"></div>
+    </section>
+
+  </div>
+
+  <!-- Scripts: load order matters (data → engine → ui → main) -->
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
